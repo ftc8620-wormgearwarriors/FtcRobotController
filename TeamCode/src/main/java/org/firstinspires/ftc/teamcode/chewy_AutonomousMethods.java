@@ -3,6 +3,8 @@ package org.firstinspires.ftc.teamcode;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
@@ -61,6 +63,10 @@ public class chewy_AutonomousMethods extends LinearOpMode {    // IMPORTANT: If 
     public void runOpMode() {
 
     }
+
+    FtcDashboard dashboard = FtcDashboard.getInstance();  // coach craig added dashboard in coach branch!
+    double xstart, ystart;  // coach added for testing dashboard
+
 
     chewy_HardwareMap robot = new chewy_HardwareMap();
     private VuforiaLocalizer vuforia = null;
@@ -642,6 +648,8 @@ public class chewy_AutonomousMethods extends LinearOpMode {    // IMPORTANT: If 
                     "  distance Error =" + distance / robot.COUNTS_PER_INCH +
                     "  cX =" + cX +
                     "  cY =" + cY);
+
+            odomVSrange();
         }
         robot.frontRightDrive.setPower(0);
         robot.frontLeftDrive.setPower(0);
@@ -829,5 +837,30 @@ public class chewy_AutonomousMethods extends LinearOpMode {    // IMPORTANT: If 
         }
     }
 
+
+    /*********************************************************************************************/
+    /*                                                                                           */
+    /*        ADDED BY COACH CRAIG  BEGINS HERE                                                  */
+    public void odomVSrange () {
+        // coach craig testing dashboard send our current position per odometry and range sensors
+        double gyroHeading = robot.imu.getHeading();
+        double theta = Math.toRadians(-gyroHeading);
+        double xrange = ( robot.leftRange.getDistance(DistanceUnit.INCH) - xstart) * Math.cos(theta);
+        double yrange = (robot.frontRange.getDistance(DistanceUnit.INCH) - ystart) * Math.cos(theta);
+
+        TelemetryPacket packet = new TelemetryPacket();
+        packet.put("x_dist", xrange);
+        packet.put("y_dist", yrange);
+        packet.put("gyro", gyroHeading);
+        packet.put("x_odo", robot.globalPositionUpdate.returnXCoordinate() / robot.COUNTS_PER_INCH);
+        packet.put("y_odo", robot.globalPositionUpdate.returnYCoordinate() / robot.COUNTS_PER_INCH);
+        packet.put("heading_odo", robot.globalPositionUpdate.returnOrientation());
+        dashboard.sendTelemetryPacket(packet);
+
+    }
+
+    /*        ADDED BY COACH CRAIG  ENDS HERE                                                  */
+    /*                                                                                           */
+    /*********************************************************************************************/
 }
 
